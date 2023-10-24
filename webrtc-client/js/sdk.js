@@ -18,10 +18,39 @@ const socket = io(THSConfig.signalServer);  // 使用Socket.IO库创建一个与
 let socketId;
 // 房间 id
 let roomId;
-// 对RTCPeerConnection连接进行缓存
+// 对RTCPeerConnection连接进行缓存（在本地保存本客户端已经建立的和其他客户端的连接（吗？））
 let rtcPeerConnects = {};
 // 本地stream
 let localStream = null;
+
+/**
+ * 启动摄像头
+ */
+const openCamera = () => {
+    return navigator.mediaDevices[GET_USER_MEDIA]({
+        audio: true,
+        video: true
+    });     // 开启摄像头即同时打开音频和视频
+}
+
+/**
+ * 关闭摄像头
+ * @param {dom} video video节点。这里的@ param是函数参数的注释：参数video是一个dom类型的数据
+ */
+const closeCamera = video => {
+    video[SRC_OBJECT].getTracks()[0].stop(); // audio
+    video[SRC_OBJECT].getTracks()[1].stop(); // video
+}
+
+/**
+ * 视频流绑定到video节点展示
+ * @param {dom} video video节点
+ * @param {obj} stream 视频流
+ */
+const pushStreamToVideo = (video, stream) => {
+    console.log('视频流绑定到video节点展示', video, stream)
+    video[SRC_OBJECT] = stream;
+}
 
 /**
  * 连接（给signal server 发送创建或者加入房间的消息）
@@ -53,7 +82,7 @@ socket.on('created', async data => {    // 异步处理 允许代码在等待某
         // 创建offer
         const offer = await pc.createOffer(THSConfig.offerOptions); // 这是一个异步操作，所以用await关键字等待它完成。
         // 发送offer
-        onCreateOfferSuccess(pc, otherSocketId, offer);
+        onCreateOfferSuccess(pc, otherSocketId, offer); // offer是发送给房间中其他用户的。房间中其他用户监听到offer以后，回复answer
     }
 })
 
@@ -77,13 +106,13 @@ function onCreateOfferSuccess(pc, otherSocketId, offer) {
     };
     console.log('发送offer消息', message)
     // 发送offer消息
-    socket.emit('offer', message);
+    socket.emit('offer', message);  // offer发送到服务器，服务器转发到接收方（app.js的socket.on('offer',...函数）
 }
 
 /**
  * 监听signal server转发过来的offer消息，将对方的描述信息加入到PeerConnection中，然后构建answer
  */
-socket.on('offer', data => {
+socket.on('offer', data => {    // 这个offer消息是服务器转发的，另一个用户发来的offer。此时本用户需要构建answer来回应他
     // data:  [from,to,room,sdp]
     console.log('收到offer: ', data);
     // 获取RTCPeerConnection
@@ -96,7 +125,7 @@ socket.on('offer', data => {
     };
 
     console.log('offer设置远端setRemoteDescription')
-    // 设置远端setRemoteDescription
+    // 设置远端setRemoteDescription【br：remote和local的description分别是什么？】
     pc.setRemoteDescription(new SessionDescription(rtcDescription));
     console.log('setRemoteDescription: ', rtcDescription);
 
@@ -163,6 +192,7 @@ socket.on('answer', data => {
  * 获取RTCPeerConnection
  * @param {string} otherSocketId 对方socketId
  */
+// 获取RTCPeerConnection
 function getWebRTCConnect(otherSocketId) {
     if (!otherSocketId) return;
     // 查询全局中是否已经保存了连接
@@ -173,15 +203,19 @@ function getWebRTCConnect(otherSocketId) {
         pc = new PeerConnection(THSConfig.iceServers); // PeerConnection是4.3.2定义的兼容处理
 
         // 设置获取icecandidate信息回调 此处可暂时忽略，将在4.3.5讲解
+        // 当ICE候选可用时，将触发此回调，用于处理ICE候选信息
         pc.onicecandidate = e => onIceCandidate(pc, otherSocketId, e);
         // 设置获取对端stream数据回调-track方式 此处可暂时忽略，将在4.3.5讲解
+        // 当从远程对等方接收到音频/视频流时，将触发此回调，用于处理接收到的流数据
         pc.ontrack = e => {
             console.log('我接到数据流了！！', pc, otherSocketId, e)
             onTrack(pc, otherSocketId, e);
         }
         // 设置获取对端stream数据回调 此处可暂时忽略，将在4.3.5讲解
+        // 当远程对等方停止发送音频/视频流时，将触发此回调
         pc.onremovestream = e => onRemoveStream(pc, otherSocketId, e);
         // peer设置本地流 此处可暂时忽略，将在4.3.5讲解
+        // 如果有本地流(localStream != null)，它会将本地流的轨道添加到RTCPeerConnection中，以便将本地音频/视频添加到通信中
         if (localStream != null) {
             localStream.getTracks().forEach(track => {
                 pc.addTrack(track, localStream);
@@ -198,6 +232,7 @@ function getWebRTCConnect(otherSocketId) {
  * 移除RTCPeerConnection连接缓存
  * @param {string} otherSocketId 对方socketId
  */
+// 移除RTCPeerConnection
 function removeRtcConnect(otherSocketId) {
     delete rtcPeerConnects[otherSocketId];
 }
@@ -208,6 +243,7 @@ function removeRtcConnect(otherSocketId) {
  * @param {*} otherSocketId 
  * @param {*} event 
  */
+// 当ICE协商完成后，我们将协商结果发送至信令服务器，让其转发给指定的客户端
 function onIceCandidate(pc, otherSocketId, event) {
     console.log('onIceCandidate to ' + otherSocketId + ' candidate: ', event);
     if (event.candidate !== null) {
@@ -231,13 +267,14 @@ function onIceCandidate(pc, otherSocketId, event) {
 /**
 * 监听signal server转发过来的candidate消息
 */
+// 远程客户端收到candidate后，添加candidate后即可接收到本机的音视频流
 socket.on('candidate', data => {
     // data:  [from,to,room,candidate[sdpMid,sdpMLineIndex,sdp]]
     console.log('candidate: ', data);
-    const iceData = data.candidate;
+    const iceData = data.candidate;     // [sdpMid, sdpMLineIndex, sdp]
 
     // 获取RTCPeerConnection
-    const pc = getWebRTCConnect(data.from);
+    const pc = getWebRTCConnect(data.from);     // 作为candidate接收方，通过信令服务器向发送方发送candidate，达成双方的p2p通信
 
     const rtcIceCandidate = new RTCIceCandidate({
         candidate: iceData.sdp,
@@ -256,6 +293,7 @@ socket.on('candidate', data => {
 * @param {*} otherSocketId 
 * @param {*} event 
 */
+// 当监听到对方传递过来时音视频流后，动态创建一个video标签，显示接收到的音视频流数据
 function onTrack(pc, otherSocketId, event) {
     console.log('onTrack from: ' + otherSocketId);
     let otherVideoDom = $('#' + otherSocketId);
@@ -278,15 +316,19 @@ function onTrack(pc, otherSocketId, event) {
 * @param {*} otherSocketId 
 * @param {*} event 
 */
+// 监听对方停止传输视频流的时候，我方进行相应处理
 function onRemoveStream(pc, otherSocketId, event) {
     console.log('onRemoveStream from: ' + otherSocketId);
     // peer关闭
     getWebRTCConnect(otherSocketId).close;
     // 删除peer对象
-    removeRtcConnect(otherSocketId)
+    removeRtcConnect(otherSocketId)     // 断开双方的连接（？）
     // 移除video
     $('#' + otherSocketId).remove();
 }
+
+// 【br：这里似乎少一个“添加本地音视频流”的函数 4.3.5(4)，只有描述，没贴代码】
+// TODO 吗？
 
 /**
  * 挂断（退出房间）
@@ -336,33 +378,3 @@ socket.on('exit', data => {
         $('#' + data.from).remove();
     }
 })
-
-/**
- * 启动摄像头
- */
-const openCamera = () => {
-    return navigator.mediaDevices[GET_USER_MEDIA]({
-        audio: true,
-        video: true
-    });     // 开启摄像头即同时打开音频和视频
-}
-
-/**
- * 关闭摄像头
- * @param {dom} video video节点。这里的@ param是函数参数的注释：参数video是一个dom类型的数据
- */
-const closeCamera = video => {
-    video[SRC_OBJECT].getTracks()[0].stop(); // audio
-    video[SRC_OBJECT].getTracks()[1].stop(); // video
-}
-
-/**
- * 视频流绑定到video节点展示
- * @param {dom} video video节点
- * @param {obj} stream 视频流
- */
-const pushStreamToVideo = (video, stream) => {
-    console.log('视频流绑定到video节点展示', video, stream)
-    video[SRC_OBJECT] = stream;
-}
-

@@ -85,6 +85,9 @@ io.sockets.on('connection', (socket) => {   // socket变量表示建立连接的
             }
             socket.emit('created', data);
             // 告诉客户端它已经加入了一个已存在的房间，并为它提供了房间内其他客户端的信息。
+
+            // joined消息是发送给房间中的其他客户端，告知他们我加入了房间
+            // created消息是发送给信令服务器，告知他我(id)加入了某个房间(room)，此时该房间中还有哪些用户(peers)
         }
     });
 
@@ -131,7 +134,7 @@ io.sockets.on('connection', (socket) => {   // socket变量表示建立连接的
     });
 
 
-    // 【br：转发offer,answer,candidate有什么区别？？？】
+    // 关于offer,answer,candidate分别是什么，可以看https://aggresss.blog.csdn.net/article/details/106832965这里的图
 
     // 转发offer消息至room其他客户端 [from,to,room,sdp]
     socket.on('offer', (message) => {

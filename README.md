@@ -72,6 +72,30 @@ https://zhuanlan.zhihu.com/p/90405755
 TODO
 
 ## webrtc-client:
+### STUN和TURN
+STUN (Session Traversal Utilities for NAT) 只能UDP，告诉我暴露在广域网的地址IP port ，我通过映射的广域网地址进行P2P数据通信。
+
+TURN( Traversal Using Relays around for NAT)UDP或TCP， 打洞失败后，提供服务器中转数据，通话双方数据都通过服务器，占服务器带宽较大 - 为了确保通话在绝大多数环境下可以正常工作。跨网只能用服务器中转（测试发现的） ，使用TURN这种情况在视频通话中占10%
+
+### WebRTC的Offer/Answer模型
+WebRTC（Web实时通信）的Offer/Answer模型是一种用于建立和协商WebRTC连接的通信协议和模型。它允许两个端点（如浏览器）之间协商媒体通信参数，以建立点对点的实时通信连接，通常用于音频、视频和数据传输。Offer/Answer模型通常用于构建WebRTC应用程序，如实时音视频通话和屏幕共享。
+
+Offer/Answer模型的基本思想是一个端点创建一个"offer"（提议），而另一个端点创建一个"answer"（回应）。这两者包含了关于媒体通信的参数，例如媒体类型、编解码器、媒体传输协议等。通常，一个端点扮演"offerer"的角色，而另一个端点扮演"answerer"的角色。
+
+整个协商过程通常包括以下步骤：
+
+Offer（提议）：发起端点（offerer）创建一个包含媒体参数的SDP（Session Description Protocol） offer，并将其发送给接收端点（answerer）。
+
+Answer（回应）：接收端点（answerer）收到SDP offer，并创建一个包含其自己的媒体参数的SDP answer，然后将其发送回给发起端点（offerer）。
+
+协商：发起端点和接收端点互相交换SDP offer和answer，以便协商最终的媒体参数。这个过程通常涉及协商媒体类型、编解码器、媒体传输方式、IP地址和端口等信息。
+
+媒体连接：一旦协商完成，端点之间就可以建立媒体连接，开始音频、视频或数据传输。
+
+Offer/Answer模型的关键部分是SDP（Session Description Protocol）offer和answer，它们是包含媒体协商信息的文本描述。这些文本描述包含了关于媒体通信的详细信息，以便确保两个端点能够理解和协商通信参数。
+
+总之，WebRTC的Offer/Answer模型是一种用于建立实时通信连接的协商模型，它允许两个端点协商媒体参数，以便建立可靠的点对点通信连接。这种模型是WebRTC应用程序的核心，用于确保媒体通信的成功和质量。
+
 TODO
 
 ## 可能可以做的改动
