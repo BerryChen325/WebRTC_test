@@ -50,5 +50,26 @@ package.json文件为项目提供了结构和元数据，它描述了项目的�
 
 基于你提供的`package.json`，执行`npm i`后，它会安装`express`, `express-session`和`socket.io`（及其所有依赖包）。这些库及其版本会被下载并保存到`node_modules`目录中。
 
+### 关于socketIO和websocket
+https://zhuanlan.zhihu.com/p/90405755
+
+> chatgpt:
+>
+> Socket.IO（Socket.IO）是一个流行的开源JavaScript库，用于实现实时、双向通信的网络应用程序。它构建在WebSocket之上，提供了跨浏览器的实时通信解决方案，同时也可以自动降级到使用其他传输协议，如长轮询（long polling）等，以确保在不同环境中实现最佳的实时通信性能。
+>
+> Socket.IO 的主要功能和特点包括：
+>
+> 实时通信：Socket.IO 允许服务器和客户端之间建立持久的双向通信通道，以便实时传输数据。这对于在线聊天、协作工具、多人游戏等需要实时互动的应用程序非常有用。
+>
+> 自动降级：Socket.IO 可以自动选择最佳的传输方式，根据客户端和服务器的支持情况，它可以使用WebSocket、轮询或其他传输方式。这确保了在不同网络环境下的兼容性和性能。
+>
+> 事件驱动：Socket.IO 基于事件的编程模型，允许服务器和客户端通过触发和监听事件来进行通信。这使得开发者可以轻松处理各种消息和动作。
+>
+> 跨平台：Socket.IO 可以在多种平台上使用，包括浏览器、Node.js、iOS、Android 等，因此可以实现跨平台的实时通信。
+>
+> Socket.IO 通常与Node.js结合使用，但也有许多其他语言的服务器端实现可供选择。它在构建实时Web应用程序时非常有用，提供了简单而强大的工具来处理实时数据传输和事件处理。
+
+TODO
+
 ## webrtc-client:
 TODO

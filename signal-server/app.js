@@ -20,7 +20,7 @@ apps.listen(SSL_PORT);  // 指定https服务器监听的端口为8443
 const io = socketIO.listen(apps);
 
 // socket监听连接
-io.sockets.on('connection', (socket) => {
+io.sockets.on('connection', (socket) => {   // socket变量表示建立连接的（发送'connection'消息）那个socket
     console.log('连接建立');
 
     // 创建/加入房间
@@ -49,7 +49,7 @@ io.sockets.on('connection', (socket) => {
             const data = {
                 id: socket.id, //socket id
                 room: room, // 房间号
-                peers: [], // 其他连接
+                peers: [], // 其他连接（就是房间中的其他用户）
             };
             socket.emit('created', data);   
             // 当前的socket实例发送一个created事件，并附带data数据。这告诉客户端它已经创建了一个新的房间。
@@ -125,9 +125,13 @@ io.sockets.on('connection', (socket) => {
             room: '',
         };
         socket.broadcast.emit('exit', message);
+
+        // 和上面的退出房间的区别：
+        // 退出房间是客户端的主动行为，而可能因为网络原因出现掉线（socket连接异常断开）而被动离开房间，则通过这里的关闭来实现
     });
 
 
+    // 【br：转发offer,answer,candidate有什么区别？？？】
 
     // 转发offer消息至room其他客户端 [from,to,room,sdp]
     socket.on('offer', (message) => {
