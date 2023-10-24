@@ -13,7 +13,7 @@ const SRC_OBJECT = 'srcObject' in v ? "srcObject" :
 
 // offer/answer模型
 // socket连接
-const socket = io(THSConfig.signalServer);
+const socket = io(THSConfig.signalServer);  // 使用Socket.IO库创建一个与THSConfig中指定的信令服务器的连接
 // 本地socket id
 let socketId;
 // 房间 id
@@ -344,12 +344,12 @@ const openCamera = () => {
     return navigator.mediaDevices[GET_USER_MEDIA]({
         audio: true,
         video: true
-    });
+    });     // 开启摄像头即同时打开音频和视频
 }
 
 /**
  * 关闭摄像头
- * @param {dom} video video节点
+ * @param {dom} video video节点。这里的@ param是函数参数的注释：参数video是一个dom类型的数据
  */
 const closeCamera = video => {
     video[SRC_OBJECT].getTracks()[0].stop(); // audio

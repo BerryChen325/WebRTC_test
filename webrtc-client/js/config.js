@@ -15,4 +15,5 @@ const THSConfig = {
     }
     // ICE (Interactive Connectivity Establishment) 是一个框架，用于使两个对等体 (通常在不同的网络或后 NAT) 能够通信。它使用 STUN 和 TURN 服务器来解决网络限制问题。
     // 这里只配置了一个 STUN 服务器 (stun:stun.xten.com)。STUN 服务器用于帮助对等体发现自己的公共 IP 地址和端口，这对于 NAT 穿越非常有用。
+    // 【br：所以只有STUN会有什么影响吗？需要我们再找一个TURN服务器吗？】
   }

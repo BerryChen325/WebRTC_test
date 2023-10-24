@@ -46,7 +46,7 @@ btnConnect.click(() => {
     return;
   };
   //启动摄像头
-  if (localStream == null) {
+  if (localStream == null) {  // localStream全局变量在sdk.js中定义
     openCamera().then(stream => {
       localStream = stream; // 保存本地视频到全局变量
       pushStreamToVideo(domLocalVideo[0], stream);
@@ -65,3 +65,5 @@ btnLogout.click(() => {
   //移除远程视频
   $('#remoteDiv').empty();
 })
+
+// 上面的OpenCamera和CloseCamera都在sdk.js中定义
