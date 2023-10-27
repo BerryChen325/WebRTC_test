@@ -14,6 +14,7 @@ const SRC_OBJECT = 'srcObject' in v ? "srcObject" :
 // offer/answer模型
 // socket连接
 const socket = io(THSConfig.signalServer);  // 使用Socket.IO库创建一个与THSConfig中指定的信令服务器的连接
+console.log('连接到server，socket:', socket)
 // 本地socket id
 let socketId;
 // 房间 id
